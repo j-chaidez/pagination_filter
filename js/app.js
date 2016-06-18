@@ -7,7 +7,7 @@ var lastLength = 0;
    node (tried firstChild, didn't work). In this case, that would be zero. I do it this way so I can use the same method for both the keyup and the 
    button click. Once searchStudents is called, it checks whether or not the searchText value length is greater than zero. If
    it is greater than zero, then we pass the trimmed searchText into app.init; if not, we pass no parameter and get the default
-   results
+   results.
 
 */
 
@@ -110,7 +110,7 @@ var app = (function(_) {
 		
 		modifyStudents: function(search) {
 			
-			var specials = !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(search);
+			var specials = !/[~`!#$%\^&*+=\-\\(\)[\]\\';,/{}|\\":<>\?]/g.test(search);
 			var newStudents = [];
 			var studentName, studentEmail;
 			
