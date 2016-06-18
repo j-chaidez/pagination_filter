@@ -1,3 +1,5 @@
+var lastLength = 0;
+
 /* 
    
    searchStudents is responsible for managing how searches are handled. Since the button that is clicked and the search input
@@ -22,7 +24,7 @@ function searchStudents() {
 
    animate takes the parameter studentList and the parameter add. studentList is the HTML class 'student-list', add
    is an integer parameter that is initially zero. add is incremented by 0.01. Then, since this function is run 
-   recursively, studentList's opacity is check to see if it has reached its limit. Once it has, it just returns 
+   recursively, studentList's opacity is checked to see if it has reached its limit. Once it has, it just returns 
    an arbitrary value to break out of the function. If the opacity value has not reached its limit, animate proceeds
    to the second else block. This creates a setTimeout function that executes an anonymous function that passes in the
    modified parameter values of the animate function. A timer of 0.2 (or 2 ms) is set, and the function is repeated until
@@ -108,12 +110,22 @@ var app = (function(_) {
 		
 		modifyStudents: function(search) {
 			
+			var specials = !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?]/g.test(search);
 			var newStudents = [];
 			var studentName, studentEmail;
 			
+			
 			if (search !== undefined) {
 				
-				var test = new RegExp(search, 'i');
+				//if block to see if any special characters are used
+				
+				if (specials) {
+					var test = new RegExp(search, 'i');
+				} else {
+					document.getElementsByTagName('input')[0].value = "";
+					var test = new RegExp('x', 'i');
+				}
+				
 				for (var i = 0; i < preservedStudents.length; i++) {
 					studentName = preservedStudents[i].children[0].children[1].innerHTML;
 					studentEmail = preservedStudents[i].children[0].children[2].innerHTML;
@@ -134,6 +146,7 @@ var app = (function(_) {
 		},
 		
 		/* 
+		
 		   showStudents is responsible for most of the heavy-lifting. First, a studentList variable is assigned the HTML object of class
 		   'student-list'. To do this, I use the Core library (https://www.sitepoint.com/simply-javascript-the-core-library/).
 		   This library mitigates some cross-browser inconsistencies and bugs when it comes to performing certain DOM operations.
@@ -141,14 +154,16 @@ var app = (function(_) {
 		   of class 'no-results'. At any one time, depending on what is going on within the program, some of these objects will not
 		   exist. To prevent errors, it checks if each one is NOT equal to undefined. If that is the case, then we know that we can 
 		   remove it from the page. If not, nothing happens. After this, students.length is checked. If this is less equal to zero,
-		   then it knows that no search results were returned by modifyStudents. At this point, it creates an H2 element . . . 
-		 
+		   then it knows that no search results were returned by modifyStudents. At this point, it creates an H2 element with 
+		   "No results found" as the innerHTML, appends it to page, and then returns 0. 
+		   
 		 */
 		   
 		showStudents: function() {
 			var studentList = _.getElementsByClass('student-list')[0];
 			var pagination = _.getElementsByClass('pagination')[0];
 			var noResults = _.getElementsByClass('no-results')[0];
+			var currentLength = students.length;
 			
 			if (studentList !== undefined) {
 				page.removeChild(studentList);
@@ -161,7 +176,7 @@ var app = (function(_) {
 			if (noResults !== undefined) {
 				page.removeChild(noResults);
 			}
-			
+		
 			if (students.length === 0) {
 				var notification = document.createElement("H2");
 				_.addClass(notification, "no-results");
@@ -170,6 +185,21 @@ var app = (function(_) {
 				return 0;
 			}
 			
+			
+		/*
+		
+			If the length of students is not equal to zero, then it knows that there are student objects that can be added to the page.
+			First, studentUL creates an element of "UL", then _.addClass assigns the class of 'student-list' to that UL. The starting position
+			is determined by looking at the innerHTML of this, which in this case is the 'a' node that was clicked. It then takes and 
+			parses the integer from the innerHTML of the element, subtracts one, and multiplies that by 10 to determine the start. 
+			For instance, if you were to click on the number 2 link, the starting point for the students collection would be 10, which is actually (2 - 1) * 10.
+			Lastly, it checks to see if start is NaN. This is used for when the application initially starts as this.innerHTML would return
+			undefined. End is similar. It will add 9 to start to determine the ending point for the upcoming for loop. Since array index
+			starting at 0, students 1 - 10 would actually be 0 - 9. If end is greater than students length, it knows that the end has been reached,
+			so it stores the value of students.length - 1 inside of end.
+			
+		*/
+		
 			var studentUL = document.createElement("UL");
 			_.addClass(studentUL, "student-list");
 			var start = (parseInt(this.innerHTML) - 1) * 10
@@ -177,10 +207,14 @@ var app = (function(_) {
 				start = 0;
 			}
 			
+		
 			var end = start + 9;
 			if (end > students.length) {
 				end = students.length - 1;
 			}
+			
+			// Use a for loop to iterate over the students collection, then based on the start and end acquired earlier, appendChild
+			// those students to the studentUL
 			
 			for (var i = 0; i < students.length; i++) {
 				if (i >= start && i <= end) {
@@ -188,15 +222,52 @@ var app = (function(_) {
 				}
 			}
 			
+			// Append studentUL to the page
 			page.appendChild(studentUL);
+			// Call the createPageLinks function
 			app.createPageLinks();
+			// Call the addAnchorListeners function	
 			app.addAnchorListeners();
+			// I'm animating the 'student-list' class here, so I need to capture that element, set its opacity, and pass it into the 
+			
 			var studentList = Core.getElementsByClass('student-list')[0];
-			studentList.style.opacity = 0;
-			animate(studentList, 0.01);
+			
+			if (this.nodeName === 'A') {
+				lastLength = 0;
+			}
+			
+			if (currentLength !== lastLength) {
+				studentList.style.opacity = 0;
+				animate(studentList, 0.01);
+			}
+			
+			lastLength = students.length;
+			
+		/*
+		
+			This really should be moved to its own function definition. This creates a hyperlink variable that contains
+			collection of HTML 'a' objects. It then iterates through each object to detect its innerHTML. If the innerHTML
+			matches the hyperlink objected located at index 'lnk', it then attaches the class of active. When you click on 
+			any pagination link, that link will be attributed the class of 'active'. Upon initially starting, this.innerHTML 
+			will be equal to 'undefined' since no 'a' object has been selected. If this is the case, it's safe to assume that '1'
+			will be the selected page, so 'active' is added to the first 'a' object and 0 is returned to break out of the 
+			function.
+		
+		*/
+		
+			var hyperlink = document.getElementsByTagName('a');
+			for (var lnk in hyperlink) {
+				if (hyperlink[lnk].innerHTML == this.innerHTML) {
+					_.addClass(hyperlink[lnk], 'active');
+				} else if (this.innerHTML === undefined) {
+					_.addClass(hyperlink[lnk], 'active');
+					return 0;
+				}
+			}
 			
 		},
 		
+
 		appendSearchBar: function() {
 			
 			var pageHeader = _.getElementsByClass("page-header")[0];
