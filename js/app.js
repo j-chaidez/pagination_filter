@@ -1,357 +1,326 @@
+// Declare the Core library for use outside of the app object
 var Core = Core;
 
+// Define lastLength; variable to be used to remember the last length of students
 var lastLength = 0;
 
-/* 
-   
-   searchStudents is responsible for managing how searches are handled. Since the button that is clicked and the search input
-   are both contained within the same div, it finds the parentElement of the button that is clicked, then finds the first child
-   node (tried firstChild, didn't work). In this case, that would be zero. I do it this way so I can use the same method for both the keyup and the 
-   button click. Once searchStudents is called, it checks whether or not the searchText value length is greater than zero. If
-   it is greater than zero, then we pass the trimmed searchText into app.init; if not, we pass no parameter and get the default
-   results.
-
-*/
-
+// searchStudents is attached to both the click and keyup events for the search bar
 function searchStudents() {
+  // searchText is the search input's value
 	var searchText = this.parentElement.childNodes[0].value;
+  // if the length of searchText is greater than 0, execute the app.init function
 	if (searchText.length > 0) {
+    // trim any whitespace from the searchText
 		app.init(String(searchText.trim()));
+    // else, run app.init to get the default values that are in place when the program boots
 	} else {
 		app.init();
 	}
 }
 
-/*
-
-   animate takes the parameter studentList and the parameter add. studentList is the HTML class 'student-list', add
-   is an integer parameter that is initially zero. add is incremented by 0.01. Then, since this function is run 
-   recursively, studentList's opacity is checked to see if it has reached its limit. Once it has, it just returns 
-   an arbitrary value to break out of the function. If the opacity value has not reached its limit, animate proceeds
-   to the second else block. This creates a setTimeout function that executes an anonymous function that passes in the
-   modified parameter values of the animate function. A timer of 0.2 (or 2 ms) is set, and the function is repeated until
-   the if condition is satisfied. Finally, studentList's opacity becomes the sum of add EACH time the function is run, which
-   is why it's separate from any of the conditional blocks. 
-   
-*/
-
+// animate is used for the simple fadeIn animation; takes two parameters, add and studenList
 function animate(studentList, add) {
+  // add controls the opacity, so it is incremented by a small amount each time the function is run
 	add += 0.01;
+  // if studentList's (the actual studentList UL) opacity is greater than one, the function terminates
 	if (studentList.style.opacity >= 1) {
 		return 0;
+  // else, a setTimeout is created and the function is run until opacity is greater than one
 	} else {
 		setTimeout(function() { animate(studentList, add); }, 0.2);
 	}
+  // if nothing is returned, opacity becomes the value of add
 	studentList.style.opacity = add;
 }
 
-/* 
-
-   I really wanted to practice using the module JavaScript pattern with this project. The module pattern creates a self-executing
-   anonymous function that returns an object that can be used as a public API, while any variables of methods declared
-   outside of the returned object are assumed to be private and can only be modified or accessed by the returned object. 
-   This is useful because it creates a 'self-contained universe', where any objects, methods, or variables created do not pollute
-   or effect the global scope, thereby eliminating (or alleviating) the possibility of naming conflicts and accidental variable
-   assignment that may effect one or more operations of the program.
-   
-*/
-
+// an anonymous self executing function that uses the module pattern
 var app = (function(_) {
+// _ is used in place of the Core library for shorthand purposes
 	
-	/* 
-	   The ceil function is pretty straight-forward. It takes the array of objects called 'students', and then returns length
-	   value divided by ten rounded up to the nearest whole integer. This is used later on in determining the number of 
-	   pagination links that will be provided to the page
-	 
-	*/
-	
+	// A function that determines the total pages needed by dividing students.length by 10
 	var ceil = function(students) {
 		return Math.ceil(students.length / 10);
 	};
 	
-	/* 
-	
-	   Starting from the top, we have preservedStudents. This is an HTML collection that contains ALL of the students on the
-	   page. students is an empty array that is populated with student objects; it's used by numerous functions. page is 
-	   the actual 'page' div itself. Lastly, totalPages is the total number of page links that will be added to pagination.
-	   
-	*/
-	   
+  // preservedStudents is a preserved version of the student items; this is never modified
 	var preservedStudents = _.getElementsByClass("student-item");
+  // an empty students array variable used for the modification of preservedStudents
 	var students = [];
+  // the div with the class of page
 	var page = _.getElementsByClass("page")[0];
+  // the totalPages needed for pagination
 	var totalPages = ceil(students);
-    
-	// The public API I mentioned earlier
+  
+	// the public API that you can use with app  
 	return {
 		
-		/*
-		
-			init takes a parameter search, (refer to searchStudents for more information), and passes it into modifyStudents. 
-			It then executes the showStudents function. 'this', in this case, refers to 'app'. In fact, 'app' could easily be 
-			used in place of 'this', but I used this because it's easier and makes more sense to me.
-			
-		*/
-		
+		// the initialize function that controls the execution of all necessary functions
 		init: function(search) {
+      // search is the searchText value mentioned earlier; it's passed into modifyStudents
 			this.modifyStudents(search);
+      // the showStudents function is then called to handled the actual display of students
 			this.showStudents();
 		},
 		
-		/* 
-		   
-		   modifyStudents takes the parameter search, creates a newStudents array, a studentName variable, and a studentEmail
-		   variable. If search is not equal to undefined, variable test, which is a regular expression containing the search text with i passed as
-		   an option to ignore case, is created. A for loop is initiated, and this iterates over the preservedStudents array.
-		   studentName is assigned the student name, and studentEmail is assigned the e-mail. A test is run on studentName or
-		   studentEmail to see if any characters within the search text match. If a match is found, it is pushed to the 
-		   newStudents array. else, if search is equal to undefined, we pass the value of preservedStudents to newStudents.
-		   students is assigned the value of newStudents, and the total number of pages is determined for pagination use. 
-		   
-		*/
-		
+    // the modifyStudents function that receives the search parameter AKA searchText
 		modifyStudents: function(search) {
 			
-			// creates a test for special characters
+      // a list of special characters used as a RegExp to detect if special characters are
+      // used in the searchText
 			var specials = !/[~`!#$%\^&*+=\-\\(\)[\]\\';,/{}|\\":<>\?]/g.test(search);
+      // an empty array variable that is used as a liason between preservedStudents and students
 			var newStudents = [];
+      // studentName and studentEmail are used to store both the student name and e-mail
 			var studentName, studentEmail;
 			
-			
+		  // check to see if search is undefined
 			if (search !== undefined) {
+        // if not, create var test: this is used to store the results of the RegExp
 				var test;
-				//if block to see if any special characters are used
-				
+				// check to see if special characters are detected
 				if (specials) {
+          // if they aren't, create a RegExp from search
 					test = new RegExp(search, 'i');
 				} else {
+          // otherwise, set the search input value back to "", and create a RegExp that
+          // returns the default student values
 					document.getElementsByTagName('input')[0].value = "";
 					test = new RegExp('x', 'i');
 				}
 				
+        // iterate over preservedStudents, find if studentName or studentEmail match the search input
 				for (var i = 0; i < preservedStudents.length; i++) {
 					studentName = preservedStudents[i].children[0].children[1].innerHTML;
 					studentEmail = preservedStudents[i].children[0].children[2].innerHTML;
 					if (test.exec(studentName) || test.exec(studentEmail)) {
+            // if a match is found, push that student object into the newStudents array
 						newStudents.push(preservedStudents[i]);
 						
 					}
 				}
 				
 			} else {
-				
+				// else, set the value of newStudents to preservedStudents
 				newStudents = preservedStudents;
 				
 			}
 			
+      // set students equal to newStudents
 			students = newStudents;
+      // get the total number of pages for the students array
 			totalPages = ceil(students);
 		},
-		
-		/* 
-		
-		   showStudents is responsible for most of the heavy-lifting. First, a studentList variable is assigned the HTML object of class
-		   'student-list'. To do this, I use the Core library (https://www.sitepoint.com/simply-javascript-the-core-library/).
-		   This library mitigates some cross-browser inconsistencies and bugs when it comes to performing certain DOM operations.
-		   Secondly, pagination is assigned the HTML object of class 'pagination'. Thirdly, noResults is assigned the HTML object 
-		   of class 'no-results'. At any one time, depending on what is going on within the program, some of these objects will not
-		   exist. To prevent errors, it checks if each one is NOT equal to undefined. If that is the case, then we know that we can 
-		   remove it from the page. If not, nothing happens. After this, students.length is checked. If this is less equal to zero,
-		   then it knows that no search results were returned by modifyStudents. At this point, it creates an H2 element with 
-		   "No results found" as the innerHTML, appends it to page, and then returns 0. 
-		   
-		 */
-		   
+	
+	  // showStudents function responsible for calling functions that actually display the students   
 		showStudents: function() {
-			var studentList = _.getElementsByClass('student-list')[0];
-			var pagination = _.getElementsByClass('pagination')[0];
-			var noResults = _.getElementsByClass('no-results')[0];
+			// create the studentList, pagination, and noResults variables
+			var studentList, pagination, noResults;
+			// get the current length of students
 			var currentLength = students.length;
 			
-			if (studentList !== undefined) {
+			// each try catch block acts as a means to check if the html object exists; if it does, then it removes it, else
+			// nothing happens
+			try {
+				studentList = _.getElementsByClass('student-list')[0];
 				page.removeChild(studentList);
-			}
+			} catch (err) {}
 			
-			if (pagination !== undefined) {
+			try {
+				pagination = _.getElementsByClass('pagination')[0];
 				page.removeChild(pagination);
-			}
+			} catch (err) {}
 			
-			if (noResults !== undefined) {
+			try {
+				noResults = _.getElementsByClass('no-results')[0];
 				page.removeChild(noResults);
-			}
-		
+			} catch (err) {}
+		    
+			// if students length is equal to zero, that means there are no results to display, call returnNoResults to return
+			// the "No Results Found" text
 			if (students.length === 0) {
-				var notification = document.createElement("H2");
-				_.addClass(notification, "no-results");
-				notification.innerHTML = "No results found";
-				page.appendChild(notification);
-				return 0;
+				return app.returnNoResults();
 			}
 			
-			
-		/*
-		
-			If the length of students is not equal to zero, then it knows that there are student objects that can be added to the page.
-			First, studentUL creates an element of "UL", then _.addClass assigns the class of 'student-list' to that UL. The starting position
-			is determined by looking at the innerHTML of this, which in this case is the 'a' node that was clicked. It then takes and 
-			parses the integer from the innerHTML of the element, subtracts one, and multiplies that by 10 to determine the start. 
-			For instance, if you were to click on the number 2 link, the starting point for the students collection would be 10, which is actually (2 - 1) * 10.
-			Lastly, it checks to see if start is NaN. This is used for when the application initially starts as this.innerHTML would return
-			undefined. End is similar. It will add 9 to start to determine the ending point for the upcoming for loop. Since array index
-			starting at 0, students 1 - 10 would actually be 0 - 9. If end is greater than students length, it knows that the end has been reached,
-			so it stores the value of students.length - 1 inside of end.
-			
-		*/
-		
+			// if students.length isn't equal to zero, there are results to display, create a UL, add the class of 'student-list'
+			// to it, then find which students to display based off of the start value
 			var studentUL = document.createElement("UL");
 			_.addClass(studentUL, "student-list");
+			// the start value is determined by looking at the innerHTML of the anchor element that was clicked, subtracting
+			// 1 and multiplying that by 10
 			var start = (parseInt(this.innerHTML) - 1) * 10;
+			// this if block is used in the case that the program is initially booted. if start isNaN, it's safe to assume that 
+			// no link has been clicked, so it just displays the first ten students
 			if (isNaN(start)) {
 				start = 0;
 			}
 			
-		
+			// end is determined by looking at start and adding 9. if students 1 - 10 need to be displayed, that means it needs 
+			// to access index 0 - 9, 10 - 19, etc. 
 			var end = start + 9;
+			// if end is greater than students.length, it means that the user is nearing the end of the students list, so it's safe 
+			// to assume that only the very last set of students needs to be displayed
 			if (end > students.length) {
 				end = students.length - 1;
 			}
-			
-			// Use a for loop to iterate over the students collection, then based on the start and end acquired earlier, appendChild
-			// those students to the studentUL
-			
+			// iterate over students, if the index of i is greater than or equal to start, and less than or equal to end, append that 
+			// student object to the studentUL
 			for (var i = 0; i < students.length; i++) {
 				if (i >= start && i <= end) {
 					studentUL.appendChild(students[i]);
 				}
 			}
 			
-			// Append studentUL to the page
+			// all of the students have been appended to the studentUL, it can append it to the page now
 			page.appendChild(studentUL);
-			// Call the createPageLinks function
+			// create the appropriate amount of page links for the pagination div
 			app.createPageLinks();
-			// Call the addAnchorListeners function	
+			// add the anchor event listeners
 			app.addAnchorListeners();
-			// I'm animating the 'student-list' class here, so I need to capture that element, set its opacity, and pass it into the 
 			
-			studentList = _.getElementsByClass('student-list')[0];
-			
-			if (this.nodeName === 'A') {
+			// set the lastLength variable equal to zero if one of the "A" elements is clicked
+			// I do this because, technically, lastLength and currentLength will always be equal when page
+			// flips occur. I want the animation effect to activate on each click
+			if (this.nodeName === "A") {
 				lastLength = 0;
 			}
 			
+			// set studentList equal to the class 'student-list'
+			studentList = _.getElementsByClass('student-list')[0];
+			
+			// check to see if currentLength is not equal to lastLength
 			if (currentLength !== lastLength) {
+				// if that's the case, set studentList's opacity to 0 (initial value for animation)
 				studentList.style.opacity = 0;
+				// call the animate function to fadeIn the div
 				animate(studentList, 0.01);
 			}
 			
+			// set the lastLength equal to the current students.length;
 			lastLength = students.length;
 			
-		/*
-		
-			This really should be moved to its own function definition. This creates a hyperlink variable that contains
-			collection of HTML 'a' objects. It then iterates through each object to detect its innerHTML. If the innerHTML
-			matches the hyperlink objected located at index 'lnk', it then attaches the class of active. When you click on 
-			any pagination link, that link will be attributed the class of 'active'. Upon initially starting, this.innerHTML 
-			will be equal to 'undefined' since no 'a' object has been selected. If this is the case, it's safe to assume that '1'
-			will be the selected page, so 'active' is added to the first 'a' object and 0 is returned to break out of the 
-			function.
-		
-		*/
-		
+			// get all 'a' elements
 			var hyperlink = document.getElementsByTagName('a');
+			// pass this.innerHTML and the hyperlink collection into the appendToActiveHyperlink function
+			app.appendActiveToHyperlink(this.innerHTML, hyperlink);
+			
+		},
+		
+		// appendActiveToHyperlink takes two parameters, e, and hyperlink
+		appendActiveToHyperlink: function(e, hyperlink) {
+			// hyperlink is a collection of html 'a' elements
 			for (var lnk in hyperlink) {
-				if (hyperlink[lnk].innerHTML == this.innerHTML) {
+				// iterate through each hyperlink element
+				if (hyperlink[lnk].innerHTML == e) {
+				// if the current hyperlink's innerHTML is equal to e (this.innerHTML), append the class active to that object
 					_.addClass(hyperlink[lnk], 'active');
-				} else if (this.innerHTML === undefined) {
+				} else if (e === undefined) {
+				// else if e is equal to undefined, it's safe to assume that the page has just been loaded, so one would be the 
+				// page that is selected; append the class active to one then return 0 to break the function
 					_.addClass(hyperlink[lnk], 'active');
 					return 0;
 				}
 			}
-			
 		},
 		
-		/*
+		// returnNoResults takes no parameters and is called when students.length is equal to zero
+		returnNoResults: function() {
+			// notification is an H2 html element
+			var notification = document.createElement("H2");
+			// add the class "no-results" to notification
+			_.addClass(notification, "no-results");
+			// alter the innerHTML of notification and set it to "No results found";
+			notification.innerHTML = "No results found";
+			// append this as a child to notification
+			page.appendChild(notification);
+			// return 0 to break out of the function
+			return 0;
+		},
+	
 		
-			appendSearchBar begins by targeting the page-header class. It then creates a div, an input, and a button (for searching).
-			It then modifies the innerHTML of the searchButton, puts a placeholder on the searchInput, and appends each HTML element
-			to the searchBarDiv. the class 'student-search' is added to the searchBarDiv, and then searchBarDiv is appended to the 
-			pageHeader.
-			
-		
-		*/
-		
+		// appendSearchBar is called once to append the search bar to the page
 		appendSearchBar: function() {
 			
+			// find the page-header class
 			var pageHeader = _.getElementsByClass("page-header")[0];
+			// create a div for the search bar
 			var searchBarDiv = document.createElement("DIV");
+			// create an input for the search input
 			var searchInput = document.createElement("INPUT");
+			// create a button for the search button
 			var searchButton = document.createElement("BUTTON");
+			// set the HTML of the searchButton so it reads "Search"
 			searchButton.innerHTML = "Search";
+			// set a default value for the searchInput
 			searchInput.placeholder = "Search for students...";
+			// append the searchInput to the searchBarDiv
 			searchBarDiv.appendChild(searchInput);
+			// append the searchButton to the searchBarDiv
 			searchBarDiv.appendChild(searchButton);
+			// add the class of 'student-search' to searchBarDiv
 			_.addClass(searchBarDiv, "student-search");
+			// append the searchBarDiv to the pageHeader
 			pageHeader.appendChild(searchBarDiv);
 			
 		},
-		/*
 		
-			createPageLinks starts by creating a pagination div, and an unordered list that is used for the pagination list.
-			It adds the class of "pagination" to the pagination div, and then it checks to see if the totalPages is equal to 1.
-			If it is, then it just returns 0 because there is no need to paginate results when there are 10 or less students.
-			If totalPages is greater than one, then a for loop is initiated. This for loop will iterate over the totalPages, and
-			for each it will create an LI element, and an A element. Each link's href is just equal to "#", so it attributes
-			"#" to each href attribute of the pageLink ("A"). After that, it sets the innerHTML of 'A' equal to the value of 'i'.
-			It then appends the pageLink child to the pageLinkContainer. After all of that is done, the it appends the paginationList
-			to the paginationDiv. Finally, it appends the paginationDiv to the 'page'.
-		
-		*/
-		
+		// createPageLinks is responsible for creating the page links in the pagination div
 		createPageLinks: function() {
 			
+			// create a DIV element for the pagination div
 			var paginationDiv = document.createElement("DIV");
+			// create a UL that will be used for the pagination links
 			var paginationList = document.createElement("UL");
+			// add the class of 'pagination' to the pagination div
 			_.addClass(paginationDiv, "pagination");
+			// if the totalPages variable is equal to one, there is no more than one page -- don't create page links
 			if (totalPages === 1) { return 0; }
+			// iterate over the totalPages variable
 			for (var i = 1; i <= totalPages; i++) {
+				// for each instance of i, create an LI element that will hold the "A" element
 				var pageLinkContainer = document.createElement("LI");
+				// create the "A" element
 				var pageLink = document.createElement("A");
+				// set each "A"'s values to "#"
 				pageLink.href = "#";
+				// set the innerHTML equal to the value of i (1, 2, 3, 4, 5, etc)
 				pageLink.innerHTML = i;
+				// append the pageLink to the pageLinkContainer
 				pageLinkContainer.appendChild(pageLink);
+				// finally append the pageLinkContainer to the paginationList
 				paginationList.appendChild(pageLinkContainer);
 			}
 			
+			// append the paginationList to the paginationDiv
 			paginationDiv.appendChild(paginationList);
+			// append everything to the page
 			_.getElementsByClass('page')[0].appendChild(paginationDiv);
 		},
 		
-		/*
-		
-			addAnchorListeners first checks to see if 'pagination' has any childNodes. If it does, then paginationDiv becomes
-			a collection of those nodes. If not, 0 is returned and the function is escaped. Then, links is set to be paginationDiv[0]'s
-			childNodes collection. For each link inside of links, target is assigned the current index links lastChild, and if the target 
-			is not equal to undefined, a click event listener is added that calls showStudents.
-		
-		*/
-		
+		// used to add anchor event listeners to the 'a' elements
 		addAnchorListeners: function() {
-			
+	  // create the paginationDiv variable to contain the pagination div	
       var paginationDiv;
-      
+            // try catch block to see if there are any childNodes to iterate over, if there aren't any, return 0 to break out of 
+			// this function
 			try { 
 				paginationDiv = _.getElementsByClass("pagination")[0].childNodes;
 			} catch (err) {
 				return 0;
 			}
 			
+			// get the childNodes of the LI elements; these are the links
 			var links = paginationDiv[0].childNodes;
+			// iterate over each link in links
 			for (var link in links) {
+		// if link exists proceed
         if (link) {
+		  // set the target value equal to the current links lastChild
           var target = links[link].lastChild;
+		  // if the target is not equal to undefined, attach the click event handler and bind the showStudents method
           if (target !== undefined) {
             _.addEventListener(target, 'click', this.showStudents);
           } else {
+		  // continue otherwise
             continue;
           }
         }
@@ -362,9 +331,10 @@ var app = (function(_) {
 	
 }(Core));
 
-// initialize the app and call the appropriate methods
+// initialize the app
 app.init();
+// append the search bar
 app.appendSearchBar();
-// addEventListeners for the search bar
+// attach the event handlers for the search functions
 Core.addEventListener(document.getElementsByTagName('button')[0], 'click', searchStudents);
 Core.addEventListener(document.getElementsByTagName('input')[0], 'keyup', searchStudents);
