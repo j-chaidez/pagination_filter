@@ -1,3 +1,5 @@
+var Core = Core;
+
 var lastLength = 0;
 
 /* 
@@ -34,11 +36,11 @@ function searchStudents() {
 */
 
 function animate(studentList, add) {
-	add += 0.01
+	add += 0.01;
 	if (studentList.style.opacity >= 1) {
 		return 0;
 	} else {
-		setTimeout(function() { animate(studentList, add) }, 0.2);
+		setTimeout(function() { animate(studentList, add); }, 0.2);
 	}
 	studentList.style.opacity = add;
 }
@@ -65,7 +67,7 @@ var app = (function(_) {
 	
 	var ceil = function(students) {
 		return Math.ceil(students.length / 10);
-	}
+	};
 	
 	/* 
 	
@@ -117,14 +119,14 @@ var app = (function(_) {
 			
 			
 			if (search !== undefined) {
-				
+				var test;
 				//if block to see if any special characters are used
 				
 				if (specials) {
-					var test = new RegExp(search, 'i');
+					test = new RegExp(search, 'i');
 				} else {
 					document.getElementsByTagName('input')[0].value = "";
-					var test = new RegExp('x', 'i');
+					test = new RegExp('x', 'i');
 				}
 				
 				for (var i = 0; i < preservedStudents.length; i++) {
@@ -203,7 +205,7 @@ var app = (function(_) {
 		
 			var studentUL = document.createElement("UL");
 			_.addClass(studentUL, "student-list");
-			var start = (parseInt(this.innerHTML) - 1) * 10
+			var start = (parseInt(this.innerHTML) - 1) * 10;
 			if (isNaN(start)) {
 				start = 0;
 			}
@@ -231,7 +233,7 @@ var app = (function(_) {
 			app.addAnchorListeners();
 			// I'm animating the 'student-list' class here, so I need to capture that element, set its opacity, and pass it into the 
 			
-			var studentList = Core.getElementsByClass('student-list')[0];
+			studentList = _.getElementsByClass('student-list')[0];
 			
 			if (this.nodeName === 'A') {
 				lastLength = 0;
@@ -283,7 +285,7 @@ var app = (function(_) {
 			var pageHeader = _.getElementsByClass("page-header")[0];
 			var searchBarDiv = document.createElement("DIV");
 			var searchInput = document.createElement("INPUT");
-			var searchButton = document.createElement("BUTTON")
+			var searchButton = document.createElement("BUTTON");
 			searchButton.innerHTML = "Search";
 			searchInput.placeholder = "Search for students...";
 			searchBarDiv.appendChild(searchInput);
@@ -308,9 +310,9 @@ var app = (function(_) {
 		createPageLinks: function() {
 			
 			var paginationDiv = document.createElement("DIV");
-			var paginationList = document.createElement("UL")
+			var paginationList = document.createElement("UL");
 			_.addClass(paginationDiv, "pagination");
-			if (totalPages === 1) { return 0; };
+			if (totalPages === 1) { return 0; }
 			for (var i = 1; i <= totalPages; i++) {
 				var pageLinkContainer = document.createElement("LI");
 				var pageLink = document.createElement("A");
@@ -335,24 +337,28 @@ var app = (function(_) {
 		
 		addAnchorListeners: function() {
 			
+      var paginationDiv;
+      
 			try { 
-				var paginationDiv = _.getElementsByClass("pagination")[0].childNodes;
+				paginationDiv = _.getElementsByClass("pagination")[0].childNodes;
 			} catch (err) {
 				return 0;
 			}
 			
 			var links = paginationDiv[0].childNodes;
 			for (var link in links) {
-				var target = links[link].lastChild;
-				if (target !== undefined) {
-					_.addEventListener(target, 'click', this.showStudents);
-				} else {
-					continue;
-				}
+        if (link) {
+          var target = links[link].lastChild;
+          if (target !== undefined) {
+            _.addEventListener(target, 'click', this.showStudents);
+          } else {
+            continue;
+          }
+        }
 			}
 		},
 	
-	}
+	};
 	
 }(Core));
 
