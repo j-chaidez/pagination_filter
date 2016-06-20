@@ -6,9 +6,9 @@ var lastLength = 0;
 
 // searchStudents is attached to both the click and keyup events for the search bar
 function searchStudents() {
-  // searchText is the search input's value
+    // searchText is the search input's value
 	var searchText = this.parentElement.childNodes[0].value;
-  // if the length of searchText is greater than 0, execute the app.init function
+    // if the length of searchText is greater than 0, execute the app.init function
 	if (searchText.length > 0) {
     // trim any whitespace from the searchText
 		app.init(String(searchText.trim()));
@@ -20,16 +20,16 @@ function searchStudents() {
 
 // animate is used for the simple fadeIn animation; takes two parameters, add and studenList
 function animate(studentList, add) {
-  // add controls the opacity, so it is incremented by a small amount each time the function is run
+    // add controls the opacity, so it is incremented by a small amount each time the function is run
 	add += 0.01;
-  // if studentList's (the actual studentList UL) opacity is greater than one, the function terminates
+    // if studentList's (the actual studentList UL) opacity is greater than one, the function terminates
 	if (studentList.style.opacity >= 1) {
 		return 0;
-  // else, a setTimeout is created and the function is run until opacity is greater than one
+    // else, a setTimeout is created and the function is run until opacity is greater than one
 	} else {
 		setTimeout(function() { animate(studentList, add); }, 0.2);
 	}
-  // if nothing is returned, opacity becomes the value of add
+    // if nothing is returned, opacity becomes the value of add
 	studentList.style.opacity = add;
 }
 
@@ -42,13 +42,13 @@ var app = (function(_) {
 		return Math.ceil(students.length / 10);
 	};
 	
-  // preservedStudents is a preserved version of the student items; this is never modified
+    // preservedStudents is a preserved version of the student items; this is never modified
 	var preservedStudents = _.getElementsByClass("student-item");
-  // an empty students array variable used for the modification of preservedStudents
+    // an empty students array variable used for the modification of preservedStudents
 	var students = [];
-  // the div with the class of page
+    // the div with the class of page
 	var page = _.getElementsByClass("page")[0];
-  // the totalPages needed for pagination
+    // the totalPages needed for pagination
 	var totalPages = ceil(students);
   
 	// the public API that you can use with app  
@@ -56,62 +56,62 @@ var app = (function(_) {
 		
 		// the initialize function that controls the execution of all necessary functions
 		init: function(search) {
-      // search is the searchText value mentioned earlier; it's passed into modifyStudents
+        // search is the searchText value mentioned earlier; it's passed into modifyStudents
 			this.modifyStudents(search);
-      // the showStudents function is then called to handled the actual display of students
+        // the showStudents function is then called to handle the actual display of students
 			this.showStudents();
 		},
 		
-    // the modifyStudents function that receives the search parameter AKA searchText
+		// the modifyStudents function that receives the search parameter AKA searchText
 		modifyStudents: function(search) {
 			
-      // a list of special characters used as a RegExp to detect if special characters are
-      // used in the searchText
+			// a list of special characters used as a RegExp to detect if special characters are
+			// used in the searchText
 			var specials = !/[~`!#$%\^&*+=\-\\(\)[\]\\';,/{}|\\":<>\?]/g.test(search);
-      // an empty array variable that is used as a liason between preservedStudents and students
+			// an empty array variable that is used as a liason between preservedStudents and students
 			var newStudents = [];
-      // studentName and studentEmail are used to store both the student name and e-mail
+			// studentName and studentEmail are used to store both the student name and e-mail
 			var studentName, studentEmail;
 			
-		  // check to see if search is undefined
+		    // check to see if search is undefined
 			if (search !== undefined) {
-        // if not, create var test: this is used to store the results of the RegExp
+			// if not, create var test: this is used to store the results of the RegExp
 				var test;
 				// check to see if special characters are detected
 				if (specials) {
-          // if they aren't, create a RegExp from search
+				// if they aren't, create a RegExp from search
 					test = new RegExp(search, 'i');
 				} else {
-          // otherwise, set the search input value back to "", and create a RegExp that
-          // returns the default student values
+				// otherwise, set the search input value back to "", and create a RegExp that
+				// returns the default student values
 					document.getElementsByTagName('input')[0].value = "";
 					test = new RegExp('x', 'i');
 				}
 				
-        // iterate over preservedStudents, find if studentName or studentEmail match the search input
+                // iterate over preservedStudents, find if studentName or studentEmail match the search input
 				for (var i = 0; i < preservedStudents.length; i++) {
 					studentName = preservedStudents[i].children[0].children[1].innerHTML;
 					studentEmail = preservedStudents[i].children[0].children[2].innerHTML;
 					if (test.exec(studentName) || test.exec(studentEmail)) {
-            // if a match is found, push that student object into the newStudents array
+					// if a match is found, push that student object into the newStudents array
 						newStudents.push(preservedStudents[i]);
 						
 					}
 				}
 				
 			} else {
-				// else, set the value of newStudents to preservedStudents
+			// else, set the value of newStudents to preservedStudents
 				newStudents = preservedStudents;
 				
 			}
 			
-      // set students equal to newStudents
+		    // set students equal to newStudents
 			students = newStudents;
-      // get the total number of pages for the students array
+            // get the total number of pages for the students array
 			totalPages = ceil(students);
 		},
 	
-	  // showStudents function responsible for calling functions that actually display the students   
+	    // showStudents function responsible for calling functions that actually display the students   
 		showStudents: function() {
 			// create the studentList, pagination, and noResults variables
 			var studentList, pagination, noResults;
