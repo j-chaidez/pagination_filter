@@ -110,6 +110,7 @@ var app = (function(_) {
 		
 		modifyStudents: function(search) {
 			
+			// creates a test for special characters
 			var specials = !/[~`!#$%\^&*+=\-\\(\)[\]\\';,/{}|\\":<>\?]/g.test(search);
 			var newStudents = [];
 			var studentName, studentEmail;
@@ -267,7 +268,16 @@ var app = (function(_) {
 			
 		},
 		
-
+		/*
+		
+			appendSearchBar begins by targeting the page-header class. It then creates a div, an input, and a button (for searching).
+			It then modifies the innerHTML of the searchButton, puts a placeholder on the searchInput, and appends each HTML element
+			to the searchBarDiv. the class 'student-search' is added to the searchBarDiv, and then searchBarDiv is appended to the 
+			pageHeader.
+			
+		
+		*/
+		
 		appendSearchBar: function() {
 			
 			var pageHeader = _.getElementsByClass("page-header")[0];
@@ -282,6 +292,18 @@ var app = (function(_) {
 			pageHeader.appendChild(searchBarDiv);
 			
 		},
+		/*
+		
+			createPageLinks starts by creating a pagination div, and an unordered list that is used for the pagination list.
+			It adds the class of "pagination" to the pagination div, and then it checks to see if the totalPages is equal to 1.
+			If it is, then it just returns 0 because there is no need to paginate results when there are 10 or less students.
+			If totalPages is greater than one, then a for loop is initiated. This for loop will iterate over the totalPages, and
+			for each it will create an LI element, and an A element. Each link's href is just equal to "#", so it attributes
+			"#" to each href attribute of the pageLink ("A"). After that, it sets the innerHTML of 'A' equal to the value of 'i'.
+			It then appends the pageLink child to the pageLinkContainer. After all of that is done, the it appends the paginationList
+			to the paginationDiv. Finally, it appends the paginationDiv to the 'page'.
+		
+		*/
 		
 		createPageLinks: function() {
 			
@@ -301,6 +323,15 @@ var app = (function(_) {
 			paginationDiv.appendChild(paginationList);
 			_.getElementsByClass('page')[0].appendChild(paginationDiv);
 		},
+		
+		/*
+		
+			addAnchorListeners first checks to see if 'pagination' has any childNodes. If it does, then paginationDiv becomes
+			a collection of those nodes. If not, 0 is returned and the function is escaped. Then, links is set to be paginationDiv[0]'s
+			childNodes collection. For each link inside of links, target is assigned the current index links lastChild, and if the target 
+			is not equal to undefined, a click event listener is added that calls showStudents.
+		
+		*/
 		
 		addAnchorListeners: function() {
 			
@@ -325,7 +356,9 @@ var app = (function(_) {
 	
 }(Core));
 
+// initialize the app and call the appropriate methods
 app.init();
 app.appendSearchBar();
+// addEventListeners for the search bar
 Core.addEventListener(document.getElementsByTagName('button')[0], 'click', searchStudents);
 Core.addEventListener(document.getElementsByTagName('input')[0], 'keyup', searchStudents);
