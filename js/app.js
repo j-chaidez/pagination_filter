@@ -21,7 +21,7 @@ function searchStudents() {
 // animate is used for the simple fadeIn animation; takes two parameters, add and studenList
 function animate(studentList, add) {
     	// add controls the opacity, so it is incremented by a small amount each time the function is run
-	add += 0.1;
+	add += 0.01;
     	// if studentList's (the actual studentList UL) opacity is greater than one, the function terminates
 	if (studentList.style.opacity >= 1) {
 		return 0;
